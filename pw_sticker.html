@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Davit Farm | Label Generator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg: #f5f0eb;
+    --card: #ffffff;
+    --border: #1a1a1a;
+    --accent: #8b1a1a;
+    --accent-light: #c9433a;
+    --muted: #888;
+    --text: #1a1a1a;
+    --row-alt: #faf7f4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 28px;
+    border-bottom: 3px solid var(--border);
+    padding-bottom: 14px;
+  }
+  header h1 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  header span {
+    font-size: .85rem;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+
+  .workspace {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 800px) {
+    .workspace { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 2px;
+    padding: 20px;
+  }
+  .panel-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .75rem;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .price-list { display: flex; flex-direction: column; gap: 8px; }
+  .price-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .9rem;
+  }
+  .price-row label { flex: 1; font-weight: 400; }
+  .price-row input[type=number] {
+    width: 90px;
+    border: 1.5px solid #ccc;
+    border-radius: 2px;
+    padding: 5px 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .85rem;
+    text-align: right;
+  }
+  .price-row input[type=number]:focus { outline: none; border-color: var(--accent); }
+  .price-unit { font-size: .75rem; color: var(--muted); width: 30px; }
+
+  .add-section { margin-top: 20px; }
+  .add-row { 
+    display: 30px; 
+    grid-template-columns: 1fr 50px 50px 20px; 
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .add-row input {
+    border: 1.5px solid #ccc;
+    border-radius: 2px;
+    padding: 8px 10px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: .9rem;
+  }
+  .add-row input:focus { outline: none; border-color: var(--accent); }
+  .add-btn {
+    background: var(--accent);
+    color: rgb(255, 255, 255);
+    border: none;
+    border-radius: 10px;
+    font-size: 1.2rem;
+    height: 38px;
+    width: 20px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .add-btn:hover { background: var(--accent-light); }
+
+  .calc-preview {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .8rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .calc-preview b { color: var(--accent); }
+
+  .items-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .items-table th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .7rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 6px 8px;
+    border-bottom: 2px solid var(--border);
+    text-align: left;
+  }
+  .items-table td {
+    padding: 9px 8px;
+    font-size: .9rem;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+  }
+  .items-table tr:nth-child(even) td { background: var(--row-alt); }
+  .items-table td:nth-child(2),
+  .items-table td:nth-child(3),
+  .items-table td:nth-child(4) {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .85rem;
+    text-align: right;
+  }
+  .del-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #ccc;
+    font-size: 1rem;
+    padding: 0 4px;
+    transition: color .15s;
+  }
+  .del-btn:hover { color: var(--accent); }
+
+  .totals-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: baseline;
+    gap: 12px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 2px solid var(--border);
+  }
+  .totals-row span { font-size: .85rem; color: var(--muted); }
+  .totals-row strong {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.4rem;
+    color: var(--accent);
+  }
+
+  .sticker-area { margin-top: 20px; }
+  .sticker-grid { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 10px; }
+
+  .sticker {
+    border: 2.5px solid #111;
+    width: 320px;
+    padding: 14px 16px 10px;
+    font-family: 'Sarabun', sans-serif;
+    background: white;
+  }
+  .sticker-name {
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: .04em;
+    margin-bottom: 10px;
+    line-height: 1.2;
+  }
+  .sticker-name .en { text-transform: uppercase; margin-right: 6px; }
+  .sticker-grid-table { width: 100%; border-collapse: collapse; }
+  .sticker-grid-table th {
+    border: 1.5px solid #111;
+    padding: 5px 8px;
+    font-size: .78rem;
+    font-weight: 600;
+    text-align: center;
+  }
+  .sticker-grid-table td {
+    border: 1.5px solid #111;
+    padding: 8px 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .9rem;
+    text-align: center;
+    height: 44px;
+    vertical-align: middle;
+  }
+  .sticker-grid-table td.total-cell { font-size: 1.1rem; font-weight: 700; }
+  .sticker-footer {
+    text-align: center;
+    font-size: .65rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: #444;
+    margin-top: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .btn {
+    padding: 9px 20px;
+    border: 2px solid var(--border);
+    border-radius: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .78rem;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all .15s;
+    background: white;
+  }
+  .btn:hover { background: var(--border); color: white; }
+  .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .btn-primary:hover { background: var(--accent-light); border-color: var(--accent-light); }
+
+  .empty-msg {
+    text-align: center;
+    color: var(--muted);
+    font-size: .85rem;
+    padding: 24px 0;
+  }
+
+  @media print {
+    body { background: white; padding: 0; }
+    header, .sidebar, .actions, .panel-title, .add-section { display: none !important; }
+    .workspace { display: block; }
+    .main-panel { border: none; padding: 0; }
+    .sticker { break-inside: avoid; page-break-inside: avoid; margin: 8mm; }
+    .sticker-grid { gap: 8mm; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Davit Farm</h1>
+  <span>Label Generator</span>
+</header>
+
+<div class="workspace">
+
+  <aside class="sidebar">
+    <div class="panel">
+      <div class="panel-title">ราคาต่อหน่วย (บาท/กก.)</div>
+      <div class="price-list" id="priceList"></div>
+    </div>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-title">เพิ่มรายการ</div>
+      <div class="add-section">
+        <div class="add-row">
+          <input type="text" id="itemName" placeholder="รายการ" list="itemSuggestions" oninput="autofillPrice()">
+          <datalist id="itemSuggestions"></datalist>
+          <input type="number" id="weight" placeholder="กก." step="0.01" min="0" oninput="calcPrice()">
+          <input type="number" id="pricePerUnit" placeholder="฿/กก." step="1" min="0" oninput="calcPrice()">
+          <button class="add-btn" onclick="addItem()">+</button>
+        </div>
+        <div class="calc-preview" id="calcPreview">—</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="panel main-panel">
+    <div class="panel-title">รายการสินค้า</div>
+
+    <table class="items-table" id="itemsTable">
+      <thead>
+        <tr>
+          <th>รายการ</th>
+          <th>น้ำหนัก (กก.)</th>
+          <th>ราคา/กก.</th>
+          <th>รวม (฿)</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="itemsBody">
+        <tr><td colspan="5" class="empty-msg">ยังไม่มีรายการ — เพิ่มสินค้าจากด้านซ้าย</td></tr>
+      </tbody>
+    </table>
+
+    <div class="totals-row">
+      <span>ยอดรวมทั้งหมด</span>
+      <strong id="grandTotal">฿0</strong>
+    </div>
+
+    <div class="sticker-area">
+      <div class="panel-title" style="margin-top:20px;">ตัวอย่างสติกเกอร์</div>
+      <div class="sticker-grid" id="stickerGrid">
+        <div class="empty-msg">สติกเกอร์จะปรากฏที่นี่</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <select id="stickerSize" class="btn" style="cursor:pointer;">
+        <option value="60x40">สติกเกอร์ 60×40 มม.</option>
+        <option value="40x30">สติกเกอร์ 40×30 มม.</option>
+      </select>
+      <button class="btn btn-primary" onclick="printStickers()">🖨️ พิมพ์ / บันทึก PDF</button>
+      <button class="btn" onclick="clearAll()">ล้างทั้งหมด</button>
+    </div>
+  </main>
+
+</div>
+
+<script>
+const PRODUCTS = [
+  { name: 'เนื้อบด',nameEn: 'Ground Beef',price: 350 },
+  { name: 'ทีโบน',nameEn: 'T-Bone Steak',price: 450 },
+  { name: 'เนื้อสันนอก',nameEn: 'Sirloin Steak',price: 390 },
+  { name: 'เนื้อสันใน',nameEn: 'Tenderloin Steak',price: 500 },
+  { name: 'ริบอาย',nameEn: 'Ribeye Steak',price: 420 },
+  { name: 'พิคานย่า',nameEn: 'Picanha',price: 400 },
+  { name: 'น่องลาย', nameEn: 'Shank',price: 380 },
+  { name: 'ใบพายสไลด์',nameEn: 'Sliced Oyster Blade',price: 320 },
+  { name: 'เสือร้องไห้สไลด์',nameEn: 'Sliced Brisket',   price: 350 },
+  { name: 'ริบอายสไลด์',nameEn: 'Sliced Ribeye',price: 400 },
+  { name: 'เนื้อหนอกสไลด์',nameEn: 'Sliced Hump',price: 400 },
+];
+
+let items = [];
+
+function buildPriceList() {
+  const dl = document.getElementById('itemSuggestions');
+  dl.innerHTML = PRODUCTS.map(p => `<option value="${p.name}">`).join('');
+
+  const list = document.getElementById('priceList');
+  list.innerHTML = PRODUCTS.map((p, i) => `
+    <div class="price-row">
+      <label>${p.name}</label>
+      <input type="number" id="price_${i}" value="${p.price}" min="0" step="10"
+             onchange="onPriceChange()">
+      <span class="price-unit">฿/กก.</span>
+    </div>
+  `).join('');
+}
+
+function onPriceChange() {
+  PRODUCTS.forEach((p, i) => {
+    const el = document.getElementById(`price_${i}`);
+    if (el) p.price = parseFloat(el.value) || 0;
+  });
+  calcPrice();
+}
+
+function autofillPrice() {
+  const name = document.getElementById('itemName').value.trim();
+  const match = PRODUCTS.find(p => p.name === name);
+  if (match) {
+    document.getElementById('pricePerUnit').value = match.price;
+    calcPrice();
+  }
+}
+
+function calcPrice() {
+  const w = parseFloat(document.getElementById('weight').value) || 0;
+  const ppu = parseFloat(document.getElementById('pricePerUnit').value) || 0;
+  const total = w * ppu;
+  const el = document.getElementById('calcPreview');
+  if (w && ppu) {
+    el.innerHTML = `${w} กก. × ${ppu.toLocaleString()} = <b>${total.toLocaleString('th-TH', {minimumFractionDigits:2})} ฿</b>`;
+  } else {
+    el.innerHTML = '—';
+  }
+}
+
+function addItem() {
+  const name = document.getElementById('itemName').value.trim();
+  const weight = parseFloat(document.getElementById('weight').value);
+  const ppu = parseFloat(document.getElementById('pricePerUnit').value);
+
+  if (!name) { alert('กรุณาระบุรายการ'); return; }
+  if (!weight || weight <= 0) { alert('กรุณาระบุน้ำหนัก'); return; }
+  if (!ppu || ppu <= 0) { alert('กรุณาระบุราคา/หน่วย'); return; }
+
+  const prod = PRODUCTS.find(p => p.name === name);
+  items.push({
+    id: Date.now(),
+    name,
+    nameEn: prod ? prod.nameEn : name,
+    weight,
+    ppu,
+    total: weight * ppu
+  });
+
+  document.getElementById('itemName').value = '';
+  document.getElementById('weight').value = '';
+  document.getElementById('pricePerUnit').value = '';
+  document.getElementById('calcPreview').innerHTML = '—';
+
+  render();
+}
+
+function deleteItem(id) {
+  items = items.filter(i => i.id !== id);
+  render();
+}
+
+function render() {
+  const tbody = document.getElementById('itemsBody');
+  const stickerGrid = document.getElementById('stickerGrid');
+
+  if (items.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">ยังไม่มีรายการ</td></tr>';
+    stickerGrid.innerHTML = '<div class="empty-msg">สติกเกอร์จะปรากฏที่นี่</div>';
+    document.getElementById('grandTotal').textContent = '฿0';
+    return;
+  }
+
+  tbody.innerHTML = items.map(item => `
+    <tr>
+      <td>${item.name}</td>
+      <td>${item.weight.toFixed(3)}</td>
+      <td>${item.ppu.toLocaleString()}</td>
+      <td>${item.total.toLocaleString('th-TH', {minimumFractionDigits:2})}</td>
+      <td><button class="del-btn" onclick="deleteItem(${item.id})">✕</button></td>
+    </tr>
+  `).join('');
+
+  const grand = items.reduce((s, i) => s + i.total, 0);
+  document.getElementById('grandTotal').textContent =
+    '฿' + grand.toLocaleString('th-TH', {minimumFractionDigits:2});
+
+  stickerGrid.innerHTML = items.map(item => buildSticker(item)).join('');
+}
+
+function buildSticker(item) {
+  const weightStr = item.weight.toFixed(3) + ' กก.';
+  const ppuStr = item.ppu.toLocaleString() + ' ฿/กก.';
+  const totalStr = item.total.toLocaleString('th-TH', {minimumFractionDigits:2}) + ' ฿';
+
+  return `
+    <div class="sticker">
+      <div class="sticker-name">
+        <span class="en">${item.nameEn.toUpperCase()}</span>${item.name}
+      </div>
+      <table class="sticker-grid-table">
+        <thead>
+          <tr>
+            <th>น้ำหนัก</th>
+            <th>ราคา/หน่วย</th>
+            <th>ราคารวม</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>${weightStr}</td>
+            <td>${ppuStr}</td>
+            <td class="total-cell">${totalStr}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="sticker-footer">Davit Farm | Premium Beef</div>
+    </div>
+  `;
+}
+
+function printStickers() {
+  if (items.length === 0) { alert('ยังไม่มีรายการ'); return; }
+  var size = document.getElementById('stickerSize').value;
+  var w, h, namePt, thPt, tdPt, totalPt, pad;
+  if (size === '60x40') {
+    w='58mm'; h='38mm'; namePt='7pt'; thPt='6pt'; tdPt='6.5pt'; totalPt='7pt'; pad='2mm 3mm 1mm';
+  } else {
+    w='38mm'; h='28mm'; namePt='5pt'; thPt='4.5pt'; tdPt='5pt'; totalPt='6pt'; pad='1.5mm 2mm 1mm';
+  }
+
+  const win = window.open('', '_blank');
+  const stickersHtml = items.map(item => buildSticker(item)).join('');
+
+  win.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        @page { size: ${w} ${h}; margin: 0; }
+        body { background: white; margin: 0; padding: 0; font-family: 'Sarabun', sans-serif; }
+        .sticker-grid { display: flex; flex-wrap: wrap; }
+        .sticker {
+          width: ${w};
+          height: ${h};
+          padding: ${pad};
+          font-family: 'Sarabun', sans-serif;
+          background: white;
+          page-break-after: always;
+          break-after: page;
+          overflow: hidden;
+        }
+        .sticker-name {
+          font-size: ${namePt};
+          font-weight: 700;
+          text-align: center;
+          letter-spacing: .04em;
+          margin-bottom: 1.5mm;
+          line-height: 1.2;
+        }
+        .sticker-name .en { text-transform: uppercase; margin-right: 4px; }
+        .sticker-grid-table { width: 100%; border-collapse: collapse; }
+        .sticker-grid-table th {
+          border: 1.5px solid #111;
+          padding: 1mm 1.5mm;
+          font-size: ${thPt};
+          font-weight: 600;
+          text-align: center;
+        }
+        .sticker-grid-table td {
+          border: 1.5px solid #111;
+          padding: 1mm 1.5mm;
+          font-family: 'IBM Plex Mono', monospace;
+          font-size: ${tdPt};
+          text-align: center;
+          vertical-align: middle;
+        }
+        .total-cell { font-size: ${totalPt}; font-weight: 700; }
+        .sticker-footer {
+          text-align: center;
+          font-size: 4.5pt;
+          letter-spacing: .15em;
+          text-transform: uppercase;
+          color: #444;
+          margin-top: 1mm;
+          font-family: 'IBM Plex Mono', monospace;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="sticker-grid">${stickersHtml}</div>
+      <script>window.onload=()=>{ setTimeout(()=>window.print(),500); }<\/script>
+    </body>
+    </html>
+  `);
+  win.document.close();
+}
+
+function clearAll() {
+  if (items.length && !confirm('ล้างรายการทั้งหมด?')) return;
+  items = [];
+  render();
+}
+
+buildPriceList();
+render();
+</script>
+</body>
+</html>
